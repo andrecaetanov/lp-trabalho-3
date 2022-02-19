@@ -149,7 +149,7 @@ Notação
                                (extend-env-with-self-and-super
                                 self super-name
                                 (extend-env field-names (object-fields self)
-                                            (empty-env)))))))))
+                                            empty-env))))))))
 
 ; 9.4.3 Classes and Class Environment
 
@@ -220,7 +220,7 @@ Notação
   (lambda (m-decls super-name field-names)
     (map
      (lambda (m-decl)
-       (let ([method-name (car m-decl)]
+       (let ([method-name (cadr m-decl)]
              [vars (caddr m-decl)]
              [body (cadddr m-decl)])
          (list method-name
@@ -300,8 +300,9 @@ Notação
                                      (cddr exp))]
 
         ;-------------------------------------------------------
+        [(equal? type 'number) (cadr exp)]
         [(equal? type 'self) (apply-env Δ '%self)]
-        [(equal? type 'send) (let ([args (value-of (cadddr exp) Δ)]
+        [(equal? type 'send) (let ([args (values-of-exps (cadddr exp) Δ)]
                                    [obj (value-of (cadr exp) Δ)])
                                (apply-method
                                 (find-method
@@ -332,18 +333,19 @@ Notação
     (let ([class-decls (car pgm)]
           [body (cadr pgm)])
       (initialize-class-env! class-decls)
-      (value-of body the-class-env))))
+      (value-of body init-env))))
 
 ;-------------------------------------------------------
 ; Exemplos
-(define t1 '(((class c1 (object () ((method initialize () 1)
-                                    (method m1 () (send self m2()))
-                                    (method m2 () 13))))
-              (class c2 (c1 () ((method m1 () 22)
-                                (method m2 () 23)
+(define t1 '(((class c1 (object () ((method initialize () (number 1))
+                                    (method m1 () (send (self) m2()))
+                                    (method m2 () (number 13)))))
+              (class c2 (c1 () ((method m1 () (number 22))
+                                (method m2 () (number 23))
                                 (method m3 () (super m1())))))
-              (class c3 (c2 () ((method m1 () 32)
-                                (method m2 () 33)))))
+              (class c3 (c2 () ((method m1 () (number 32))
+                                (method m2 () (number 33))))))
+
              (let o3 (new c3 ())
                (send (var o3) m3 ()))))
 
