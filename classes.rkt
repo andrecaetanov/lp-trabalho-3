@@ -301,7 +301,6 @@ Notação
                                      (cddr exp))]
 
         ;-------------------------------------------------------
-        [(equal? type 'number) (cadr exp)]
         [(equal? type 'self) (apply-env Δ '%self)]
         [(equal? type 'send) (let ([args (values-of-exps (cadddr exp) Δ)]
                                    [obj (value-of (cadr exp) Δ)])
@@ -338,14 +337,14 @@ Notação
 
 ;-------------------------------------------------------
 ; Exemplos
-(define t1 '(((class c1 object () ((method initialize () (number 1))
+(define t1 '(((class c1 object () ((method initialize () (lit 1))
                                    (method m1 () (send (self) m2()))
-                                   (method m2 () (number 13))))
-              (class c2 c1 () ((method m1 () (number 22))
-                               (method m2 () (number 23))
+                                   (method m2 () (lit 13))))
+              (class c2 c1 () ((method m1 () (lit 22))
+                               (method m2 () (lit 23))
                                (method m3 () (super m1()))))
-              (class c3 c2 () ((method m1 () (number 32))
-                               (method m2 () (number 33)))))
+              (class c3 c2 () ((method m1 () (lit 32))
+                               (method m2 () (lit 33)))))
              (let o3 (new c3 ())
                (send (var o3) m3 ()))))
 
