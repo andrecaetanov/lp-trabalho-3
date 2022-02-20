@@ -168,28 +168,28 @@ Notação
       (if maybe-pair (cadr maybe-pair)
           (error (string-append "Unknown class " (symbol->string name)))))))
 
-(struct class (name super-name field-names method-env))
+(struct class (super-name field-names method-env))
 
 (define initialize-class-env!
   (lambda (c-decls)
     (set! the-class-env
           (list
-           (list 'object (class #f #f '() '()))))
+           (list 'object (class #f '() '()))))
     (for-each initialize-class-decl! c-decls)))
 
 (define initialize-class-decl!
   (lambda (c-decl)
     (let ([c-name (cadr c-decl)]
-          [s-name (car (caddr c-decl))]
-          [f-names (cadr (caddr c-decl))]
-          [m-decls (caddr (caddr c-decl))])
+          [s-name (caddr c-decl)]
+          [f-names (cadddr c-decl)]
+          [m-decls (car (cddddr c-decl))])
       (let ([f-names
              (append-field-names
               (class-field-names (lookup-class s-name))
               f-names)])
         (add-to-class-env!
          c-name
-         (class c-name s-name f-names
+         (class s-name f-names
            (merge-method-envs
             (class-method-env (lookup-class s-name))
             (method-decls->method-env
@@ -232,6 +232,7 @@ Notação
     (append new-m-env super-m-env)))
 
 ; Métodos auxiliares
+
 (define values-of-exps
   (lambda (exps env)
     (map
@@ -337,15 +338,14 @@ Notação
 
 ;-------------------------------------------------------
 ; Exemplos
-(define t1 '(((class c1 (object () ((method initialize () (number 1))
-                                    (method m1 () (send (self) m2()))
-                                    (method m2 () (number 13)))))
-              (class c2 (c1 () ((method m1 () (number 22))
-                                (method m2 () (number 23))
-                                (method m3 () (super m1())))))
-              (class c3 (c2 () ((method m1 () (number 32))
-                                (method m2 () (number 33))))))
-
+(define t1 '(((class c1 object () ((method initialize () (number 1))
+                                   (method m1 () (send (self) m2()))
+                                   (method m2 () (number 13))))
+              (class c2 c1 () ((method m1 () (number 22))
+                               (method m2 () (number 23))
+                               (method m3 () (super m1()))))
+              (class c3 c2 () ((method m1 () (number 32))
+                               (method m2 () (number 33)))))
              (let o3 (new c3 ())
                (send (var o3) m3 ()))))
 
