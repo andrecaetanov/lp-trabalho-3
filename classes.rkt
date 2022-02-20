@@ -14,6 +14,7 @@
 
 ; -------------------------- 9.4.1 Objects --------------------------
 
+; Cria um objeto a partir do nome da classe
 (define new-object
   (lambda (class-name)
     (object
@@ -25,6 +26,8 @@
 
 ; -------------------------- 9.4.2 Methods --------------------------
 
+; Executa um método de um objeto dentro de um ambiente composto pelas propriedades
+; da classe e da superclasse
 (define apply-method
   (lambda (m self args value-of)
     (when (method? m)
@@ -41,8 +44,10 @@
 
 ; --------------- 9.4.3 Classes and Class Environment ---------------
 
+; Inicializa um ambiente de classes vazio
 (define the-class-env '())
 
+; Adiciona uma classe no ambiente de classes
 (define add-to-class-env!
   (lambda (class-name class)
     (set! the-class-env
@@ -50,12 +55,14 @@
            (list class-name class)
            the-class-env))))
 
+; Busca uma classe dentro do ambiente de classes
 (define lookup-class
   (lambda (name)
     (let ((maybe-pair (assq name the-class-env)))
       (if maybe-pair (cadr maybe-pair)
           (error (string-append "Unknown class " (symbol->string name)))))))
 
+; Inicializa o ambiente de classes a partir das declarações das classes
 (define initialize-class-env!
   (lambda (c-decls)
     (set! the-class-env
@@ -63,6 +70,7 @@
            (list 'object (class #f '() '()))))
     (for-each initialize-class-decl! c-decls)))
 
+; Adiciona no ambiente de classes uma classe a partir de sua declaração
 (define initialize-class-decl!
   (lambda (c-decl)
     (let ([c-name (cadr c-decl)]
@@ -81,6 +89,8 @@
             (method-decls->method-env
              m-decls s-name f-names))))))))
 
+
+; Adiciona as propriedades da superclasse junto das propriedades da classe
 (define append-field-names
   (lambda (super-fields new-fields)
     (cond
@@ -95,6 +105,7 @@
 
 ; -------------------- 9.4.4 Method Environments --------------------
 
+; Busca um método a partir do seu nome e do nome da classe no ambiente de métodos da classe
 (define find-method
   (lambda (c-name name)
     (let ([m-env (class-method-env (lookup-class c-name))])
@@ -102,6 +113,7 @@
         (if (pair? maybe-pair) (cadr maybe-pair)
             (error (string-append "Method not found " (symbol->string name))))))))
 
+; Converte as declarações de métodos em um ambiente de métodos
 (define method-decls->method-env
   (lambda (m-decls super-name field-names)
     (map
@@ -113,18 +125,21 @@
                (method vars body super-name field-names))))
      m-decls)))
 
+; Combina os ambientes de métodos da classe e da superclasse
 (define merge-method-envs
   (lambda (super-m-env new-m-env)
     (append new-m-env super-m-env)))
 
 ; ----------------------- Métodos auxiliares -----------------------
 
+; Avalia os valores de múltiplas expressões
 (define values-of-exps
   (lambda (exps env value-of)
     (map
      (lambda (exp) (value-of exp env))
      exps)))
 
+; Cria um novo identificador concatenando-o a um símbolo e um número incremental
 (define fresh-identifier
   (let ((sn 0))
     (lambda (identifier)
@@ -135,6 +150,7 @@
         "%"
         (number->string sn))))))
 
+; Extende o ambiente com uma lista de valores de forma recursiva
 (define extend-env*
   (lambda (vars vals env)
     (if (null? vars)
@@ -143,6 +159,7 @@
                      (cdr vals)
                      (cons (cons (car vars) (car vals)) env)))))
 
+; Extende o ambiente levando em consideração o próprio objeto e sua superclasse
 (define (extend-env-with-self-and-super self super env)
   (lambda (svar)
     (case svar

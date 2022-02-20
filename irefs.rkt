@@ -7,7 +7,9 @@
          empty-env init-env apply-env extend-env extend-env-rec
          proc-val apply-proc apply-proc-ref (struct-out thunk))
 
-; --------- IREF: Uma Linguagem com Referências Implícitas ---------
+; --------------- IREF: Uma Linguagem com Referências Implícitas ---------------
+
+; ----------------------------- Store ------------------------------
 
 #|
 
@@ -44,7 +46,7 @@ Expressed values e Denoted values
       (vector-set! (cdr σ) addr v)
       (error "invalid location")))
 
-; -------------------------- Environtment --------------------------
+; -------------------------- Environment --------------------------
 
 #|
 
